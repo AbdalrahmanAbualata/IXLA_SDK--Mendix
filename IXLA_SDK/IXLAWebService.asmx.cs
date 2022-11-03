@@ -30,7 +30,7 @@ namespace IXLA_SDK
     {
 
         [WebMethod]
-        public string Printer_Command(string Ip, int Port, string Type, string Country, string Passport, string Name1EN
+        public string Insert(string Ip, int Port, string Type, string Country, string Passport, string Name1EN
         , string Name2EN, string Name1AR, string Name2AR, string Surname1EN, string Surname1AR, string MatherNameEN, string MatherNameAR,
             string Sex, string SexArabic, string PlaceOfBirth, string PlaceOfBirthArabic, string Nationality, string NationalityArabic,
             string dateOfIssue, string DateOfExpiry, string Signature, string AuthorityPlaceEN, string AuthorityPlaceAR, string MRZ1,
@@ -144,27 +144,6 @@ namespace IXLA_SDK
                         ////new UpdateTextEntity("32", "9/4/2022"),
 
                     }).ConfigureAwait(false);
-
-                    // If you configured XY AutoPositioning patterns (using the web interface) you can use the "autoposition" 
-                    // command to select one of the configured patterns and obtain the offset by which entities need to be translated
-                    // to match the position of a preprinted marker in the passport 
-
-                    //var autoPosResponse = await machineApi.PerformAutoPosition("IraqAutopos");
-
-                    // mark layout
-                    // the offsetX and offsetY parameters can be retrived using the "autoposition" command. 
-                    // I left them commented here because i didn't configure autoposition in the machine that I'm using for testing 
-
-
-                    //this one should be commented too if you're not loading the any document
-                    //await machineApi.MarkLayoutAsync("my_card"
-                    // , offsetX: autoPosResponse.XOffset,
-                    // offsetY: autoPosResponse.YOffset
-                    //).ConfigureAwait(false);
-
-                    // eject the passport
-                    await machineApi.EjectAsync().ConfigureAwait(false);
-
                     return "Ok";
                 }
                 catch (Exception e)
@@ -190,6 +169,130 @@ namespace IXLA_SDK
 
             return result;
         }
+
+        //  MarkLayout method
+        [WebMethod]
+        public string MarkLayout(string Ip, int Port)
+        {
+
+            var result = Task.Run(async () =>
+            {
+                var client = new MachineClient();
+
+
+
+
+                // the client raises interlock notification 
+                client.OnInterlockNotification += (c, args) => Console.WriteLine("Interlock status changed");
+
+                try
+                {
+                    // we don't need the stopping token 
+                    await client.ConnectAsync(Ip, Port, CancellationToken.None).ConfigureAwait(false);
+                    var machineApi = new MachineApi(client);
+
+               
+
+                    // If you configured XY AutoPositioning patterns (using the web interface) you can use the "autoposition" 
+                    // command to select one of the configured patterns and obtain the offset by which entities need to be translated
+                    // to match the position of a preprinted marker in the passport 
+
+                    //var autoPosResponse = await machineApi.PerformAutoPosition("IraqAutopos");
+
+                    // mark layout
+                    // the offsetX and offsetY parameters can be retrived using the "autoposition" command. 
+                    // I left them commented here because i didn't configure autoposition in the machine that I'm using for testing 
+
+
+                    //this one should be commented too if you're not loading the any document
+                    //await machineApi.MarkLayoutAsync("my_card"
+                    // , offsetX: autoPosResponse.XOffset,
+                    // offsetY: autoPosResponse.YOffset
+                    //).ConfigureAwait(false);
+
+                  
+
+                    return "Ok";
+                }
+                catch (Exception e)
+                {
+                    return e.ToString();
+                }
+                finally
+                {
+                    try
+                    {
+                        // graceful disconnect sends \r\n before disposing the stream
+                        // to avoid hanging connections server side
+                        Console.WriteLine("Graceful disconnect...");
+
+                        await client.GracefulDisconnectAsync().ConfigureAwait(false);
+                    }
+                    catch
+                    {
+                    }
+                }
+            }).Result;
+
+
+            return result;
+        }
+
+
+
+        //  Eject method
+
+
+        [WebMethod]
+        public string Eject(string Ip, int Port)
+        {
+
+            var result = Task.Run(async () =>
+            {
+                var client = new MachineClient();
+
+
+
+
+                // the client raises interlock notification 
+                client.OnInterlockNotification += (c, args) => Console.WriteLine("Interlock status changed");
+
+                try
+                {
+                    // we don't need the stopping token 
+                    await client.ConnectAsync(Ip, Port, CancellationToken.None).ConfigureAwait(false);
+                    var machineApi = new MachineApi(client);
+
+
+                    // eject the passport
+                    await machineApi.EjectAsync().ConfigureAwait(false);
+
+                    return "Ok";
+                }
+                catch (Exception e)
+                {
+                    return e.ToString();
+                }
+                finally
+                {
+                    try
+                    {
+                        // graceful disconnect sends \r\n before disposing the stream
+                        // to avoid hanging connections server side
+                        Console.WriteLine("Graceful disconnect...");
+
+                        await client.GracefulDisconnectAsync().ConfigureAwait(false);
+                    }
+                    catch
+                    {
+                    }
+                }
+            }).Result;
+
+
+            return result;
+        }
+
 
     }
 }
